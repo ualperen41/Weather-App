@@ -62,11 +62,11 @@ header {
         }
       }
 
-      .units-toggle {
+      .unit-toggle {
         display: flex;
         border: 1px solid var(--outline);
         border-radius: 10px;
-        background: var(--surface);
+        background: var(--surface) / 30;
         overflow: hidden;
         button {
           all: unset;

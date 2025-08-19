@@ -8,6 +8,7 @@ import {
   setLoader,
   renderWeatherData,
   renderRecentChips,
+  updateUnitToggle,
 } from "./ui.js";
 
 //! projede tutulan veriler
@@ -74,7 +75,7 @@ const handleSearch = async (city) => {
 
   try {
     //api dan hava durumu verileri al
-    const data = await getWeatherData(city);
+    const data = await getWeatherData(city, STATE.units);
     if (data.cod === "404") {
       return renderError("Şehir bulunamadı");
     }
@@ -86,7 +87,7 @@ const handleSearch = async (city) => {
     pushRecent(name);
 
     // ekrana hava durumu verisini bas
-    renderWeatherData(data, flagUrl);
+    renderWeatherData(data, flagUrl, STATE.units);
   } catch (error) {
     // api'dan hata geldiyse ekrana bas
     renderError(error.message || "Şehir bulunamadı");
@@ -102,10 +103,17 @@ const handleGeoSearch = () => {
     async (position) => {
       const { latitude, longitude } = position.coords;
 
+      // ekrana loader bas
+      setLoader(true);
+
       // api a hava durumu için istek at
-      const data = await getWeatherByCoords(latitude, longitude);
+      const data = await getWeatherByCoords(latitude, longitude, STATE.units);
+
+      // loader gizle
+      setLoader(false);
+
       const flagUrl = getFlagUrl(data.sys.country);
-      renderWeatherData(data, flagUrl);
+      renderWeatherData(data, flagUrl, STATE.units);
       pushRecent(data.name);
     },
     () => {
@@ -117,6 +125,8 @@ const handleGeoSearch = () => {
 //! events
 // sayfa içeriği yüklendiğinde
 document.addEventListener("DOMContentLoaded", () => {
+  // kullanıcı konumuna göre arat
+  handleGeoSearch();
   renderCityList();
   renderRecentChips(STATE.recent, (city) => {
     uiElement.searchInput.value = city;
@@ -162,13 +172,13 @@ uiElement.unitToggle.querySelectorAll("button").forEach((btn) => {
     // seçili birimi tutuğumuz değişkeni güncelle
     STATE.units = nextUnits;
 
+    // local storage a son güncellemeleri kaydet
+    persist();
+
+    // arayüzü güncelle
+    updateUnitToggle(nextUnits);
+
     // son yapılan aramayı seçilen birime göre tekrarla
-    const data = await getWeatherData(STATE.recent[0], nextUnits);
-
-    //bayrağı al
-    const flagUrl = getFlagUrl(data.sys.country);
-
-    // arama sonuçlarını ekrana bas
-    renderWeatherData(data, flagUrl, nextUnits);
+    handleSearch(STATE.recent[0]);
   });
 });

@@ -206,6 +206,15 @@ const renderRecentChips = (recentCities, onSelect) => {
   });
 };
 
+// seçili birimi güncelle
+const updateUnitToggle = (units) => {
+  uiElement.unitToggle.querySelectorAll("button").forEach((btn) => {
+    // butonun değeri seçilen birim değerine eşitmi
+    const isActive = btn.value === units;
+    btn.classList.toggle("active", isActive);
+  });
+};
+
 // değişken/fonksiyonları diğer dosyalarda kullanmak için export ediyoruz
 export {
   uiElement,
@@ -216,4 +225,5 @@ export {
   setLoader,
   renderWeatherData,
   renderRecentChips,
+  updateUnitToggle,
 };

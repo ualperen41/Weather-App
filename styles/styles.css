@@ -85,14 +85,14 @@ header .header-top .controls .theme-btn {
 header .header-top .controls .theme-btn:hover {
   transform: translateY(-1px);
 }
-header .header-top .controls .units-toggle {
+header .header-top .controls .unit-toggle {
   display: flex;
   border: 1px solid var(--outline);
   border-radius: 10px;
-  background: var(--surface);
+  background: var(--surface)/30;
   overflow: hidden;
 }
-header .header-top .controls .units-toggle button {
+header .header-top .controls .unit-toggle button {
   all: unset;
   padding: 8px 12px;
   cursor: pointer;
