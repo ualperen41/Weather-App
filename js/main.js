@@ -33,6 +33,7 @@ updateThemeIcon(STATE.theme);
 const persist = () => {
   localStorage.setItem("theme", STATE.theme);
   localStorage.setItem("recent", JSON.stringify(STATE.recent));
+  localStorage.setItem("units", STATE.units);
 };
 
 // son aratılanlara ekleme yapan fonksiyon
@@ -151,8 +152,23 @@ uiElement.locateBtn.addEventListener("click", handleGeoSearch);
 
 // birim alanına tıklanma olayını izle
 uiElement.unitToggle.querySelectorAll("button").forEach((btn) => {
-  btn.addEventListener("click", () => {
+  btn.addEventListener("click", async () => {
     const nextUnits = btn.value;
-    console.log(nextUnits);
+    persist();
+
+    // aynu birim seçildiyse fonksiyonu durdur
+    if (STATE.units === nextUnits) return;
+
+    // seçili birimi tutuğumuz değişkeni güncelle
+    STATE.units = nextUnits;
+
+    // son yapılan aramayı seçilen birime göre tekrarla
+    const data = await getWeatherData(STATE.recent[0], nextUnits);
+
+    //bayrağı al
+    const flagUrl = getFlagUrl(data.sys.country);
+
+    // arama sonuçlarını ekrana bas
+    renderWeatherData(data, flagUrl, nextUnits);
   });
 });
