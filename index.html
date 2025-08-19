@@ -17,11 +17,11 @@
                 <h1 class="app-title">Hava Durumu</h1>
 
                 <div class="controls">
-                    <div class="units-toggle">
-                        <button class="active">
+                    <div class="unit-toggle">
+                        <button value="metric" class="active">
                             °C
                         </button>
-                        <button>
+                        <button value="imperial">
                             °F
                         </button>
                     </div>
@@ -38,18 +38,25 @@
 <datalist id="city-list"></datalist>
 
                 <button type="submit" class="primary-btn" id="search-btn"><i class="bi bi-search"></i></button>
-                <button type="button" class="ghost-btn" id="search-btn"><i class="bi bi-crosshair"></i></button>
+                <button type="button" class="ghost-btn" id="locate-btn"><i class="bi bi-crosshair"></i></button>
             </form>
 
             <div id="recent-chips" class="recent-chips">
-                <button class="chip">Ankara</button>
-                <button  class="chip">İstanbul</button>
-                <button class="chip">İzmir</button>
+               
             </div>
         </header>
 
         <main>
+            <div class="weather-container">
+                
+            </div>
+
+
+
             <div id="error-message"></div>
+            <div class="laoder-overlay" id="loader">
+                <div class="loader"></div>
+            </div>
         </main>
     </section>
 

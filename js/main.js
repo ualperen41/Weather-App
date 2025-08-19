@@ -1,13 +1,20 @@
+import { getWeatherData, getWeatherByCoords, getFlagUrl } from "./api.js";
 import {
   uiElement,
   updateThemeIcon,
   renderCityList,
   renderError,
+  clearError,
+  setLoader,
+  renderWeatherData,
+  renderRecentChips,
 } from "./ui.js";
 
 //! projede tutulan veriler
 const STATE = {
   theme: localStorage.getItem("theme") || "dark",
+  recent: JSON.parse(localStorage.getItem("recent") || "[]"),
+  units: localStorage.getItem("units") || "metric",
 };
 
 // ! proje yüklendiği anda yapılacaklar
@@ -25,22 +32,95 @@ updateThemeIcon(STATE.theme);
 // mevcut değerleri local storage'a kaydet
 const persist = () => {
   localStorage.setItem("theme", STATE.theme);
+  localStorage.setItem("recent", JSON.stringify(STATE.recent));
+};
+
+// son aratılanlara ekleme yapan fonksiyon
+const pushRecent = (city) => {
+  // son aratılanı diziye ekle
+  // dizide aynı şehir isminden max 1 tane olmalı
+  // yeni elemanın dizinin en başına eklemeli
+  // en son aratılan 6 şehirli sınırla
+  const updated = [
+    city,
+    ...STATE.recent.filter((c) => c.toLowerCase() !== city.toLowerCase()),
+  ].slice(0, 6);
+  // state nesnesini güncelle
+  STATE.recent = updated;
+  // son aratılanları ekrana bas
+  renderRecentChips(STATE.recent, (city) => {
+    uiElement.searchInput.value = city;
+    handleSearch(city);
+  });
+  //  son güncellemeleri localStorage a kaydet
+  persist();
 };
 
 // form gönderilince çalışan fonksiyon
-const handleSearch = (city) => {
+const handleSearch = async (city) => {
   const name = city.trim();
-  console.log(name);
+
   if (!name) {
     renderError("Şehir ismi zorunludur");
+    return;
   }
+
+  // önceden hata varsa temizle
+  clearError();
+
+  // ekrana loader bas
+  setLoader(true);
+
+  try {
+    //api dan hava durumu verileri al
+    const data = await getWeatherData(city);
+    if (data.cod === "404") {
+      return renderError("Şehir bulunamadı");
+    }
+
+    // bayrak için url oluştur
+    const flagUrl = getFlagUrl(data.sys.country);
+
+    // son aratılanları güncelle
+    pushRecent(name);
+
+    // ekrana hava durumu verisini bas
+    renderWeatherData(data, flagUrl);
+  } catch (error) {
+    // api'dan hata geldiyse ekrana bas
+    renderError(error.message || "Şehir bulunamadı");
+  } finally {
+    // api'dan cevap gelince loader'ı ekrandan kaldır
+    setLoader(false);
+  }
+};
+
+// kullanıcının konumuna göre ara
+const handleGeoSearch = () => {
+  window.navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      const { latitude, longitude } = position.coords;
+
+      // api a hava durumu için istek at
+      const data = await getWeatherByCoords(latitude, longitude);
+      const flagUrl = getFlagUrl(data.sys.country);
+      renderWeatherData(data, flagUrl);
+      pushRecent(data.name);
+    },
+    () => {
+      renderError("Konum bilgisi bulunamadı");
+    }
+  );
 };
 
 //! events
 // sayfa içeriği yüklendiğinde
 document.addEventListener("DOMContentLoaded", () => {
   renderCityList();
-  handleSearch(city);
+  renderRecentChips(STATE.recent, (city) => {
+    uiElement.searchInput.value = city;
+    handleSearch(city);
+  });
 });
 
 // form gönderildiğinde
@@ -64,4 +144,15 @@ uiElement.themeBtn.addEventListener("click", () => {
   // iconu güncelle
 
   updateThemeIcon(STATE.theme);
+});
+
+// konum butonuna tıklanma olayını izle
+uiElement.locateBtn.addEventListener("click", handleGeoSearch);
+
+// birim alanına tıklanma olayını izle
+uiElement.unitToggle.querySelectorAll("button").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const nextUnits = btn.value;
+    console.log(nextUnits);
+  });
 });
